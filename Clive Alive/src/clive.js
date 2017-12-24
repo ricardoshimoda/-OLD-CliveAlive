@@ -5,13 +5,17 @@ canvas.height = 400;
 var surface = canvas.getContext("2d");
 var uInt;        // Variable for setInterval.
 var background;  // The backgound image.
+var loseImage;   // This image is displayed when the player dies.
+var winImage;
+var gameIsLost;  // Set to true when the player dies.
+var gameIsWon;   // Set to true when the game is won.
 var pad1 = {img:null,x:null,y:null,onPad:null}; // The two 
 var pad2 = {img:null,x:null,y:null,onPad:null}; // pad classes.
 var pads; // This array holds the pads that the player can jump onto.
 var bullets; // This array will hold all the bullets displayed on the canvas.
 var bulletSpeedMultiplier; // A vairable used to determine the value of bullet speed.
 
-// PLAYER RELATED VARIABLES GO HERE ********************************************************************************************
+// PLAYER RELATED VARIABLES **********************************************************************************************************
 var player = {img:null,x:null,y:null}; // The player class. img is the image of the player. x and y are the player coordinates.
 var playerSpeed; // Player's speed in pixels.
 const JUMP_SPEED = 8; // Used to set the jump speed back to it's original value.
@@ -25,15 +29,22 @@ var flag3 = false; //  and not more.
 var currentDirection;// Used to keep track of player's direction. (true=right false=left)
 var applyPlayerGravity; // True: Start applying gravitational force to player.   False: Stop applying gravitational force to player.
 var fallSpeed; // Player fall speed in pixels.
-// END OF PLAYER RELATED VARIABLES **********************************************************************************************
+var jumpSound = document.createElement("AUDIO"); // This is the jump sound effect, weeeeeeeee!
+var shootSound = document.createElement("AUDIO"); // Shooting sound effect.
+// END OF PLAYER RELATED VARIABLES ***************************************************************************************************
+
+// ZOMBIE RELATED VARIABLES **********************************************************************************************************
+var zombie = {img:null,lives:null,x:null,y:null}
+var zombieSpeed; // Speed of zombiein pixels.
+var zombieDamageSound = document.createElement("AUDIO"); // Played when tthe zombie takes damage.
+// END OF ZONBIE RELATED VARIABLES ***************************************************************************************************
 
 var leftPressed = false; // These flags are used  
 var rightPressed = false;// to keep track of which
 var upPressed = false;   // keyboard button the
 var downPressed = false; // player presses.
 
-var jumpSound = document.createElement("AUDIO"); // This is the jump sound effect, weeeeeeeee!
-var shootSound = document.createElement("AUDIO"); // Shooting sound effect.
+
 
 window.addEventListener("keydown", onKeyDown);
 window.addEventListener("keyup", onKeyUp);
@@ -44,8 +55,11 @@ createMap();
 
 function update()
 {
+	moveZombie();
 	movePlayer();
 	moveBullet();
+	collisionBulletZombie();
+	collisionPlayerZombie();
 	collisionPlayerPad();
 	collisionBulletPad();
 	collisionBulletGround()
@@ -57,10 +71,15 @@ function createMap() // Initialize all the variables here.
 {
 	background = new Image();
 	background.src = "../img/background.jpg";
+	loseImage = new Image();
+	loseImage.src = "../img/lose.png";
+	winImage = new Image();
+	winImage.src = "../img/win.png";
 	player.img = new Image();
 	player.img.src = "../img/playerRight.png";
 	jumpSound.setAttribute("src","../aud/jump.wav");
 	shootSound.setAttribute("src","../aud/shoot.wav");
+	zombieDamageSound.setAttribute("src","../aud/damage.wav");
 	player.x = 300;
 	player.y = 295;
 	playerSpeed = 4;
@@ -71,6 +90,12 @@ function createMap() // Initialize all the variables here.
 	currentDirection = true;
 	applyPlayerGravity = false;
 	fallSpeed = 5;
+	zombie.img = new Image();
+	zombie.img.src = "../img/zombieRight.png";
+	zombie.lives = 3;
+	zombie.x = 100;
+	zombie.y = 275 - zombie.img.height;
+	zombieSpeed = 1;
 	bullets = [];
 	bulletSpeedMultiplier = 20;
 	pads = [];
@@ -86,6 +111,8 @@ function createMap() // Initialize all the variables here.
 	pad2.y = 250;
 	pad2.onPad = false;
 	pads.push(pad2);
+	gameIsLost = false;
+	gameIsWon = false;
 	uInt = setInterval(update, 15.34);
 }
 
@@ -97,10 +124,30 @@ function render()
 	{ // For each pad in the pads array, draw it on the canvas.
 		surface.drawImage(pads[i].img,pads[i].x,pads[i].y);
 	}
-	surface.drawImage(player.img,player.x,player.y); // Draw the player.
 	for (var i = 0; i < bullets.length; i++)
 	{ // For each bullet in bullets array:
 		surface.drawImage(bullets[i].img,bullets[i].x,bullets[i].y); // Draw the bullet on the canvas.
+	}
+	if (!gameIsWon)
+	{
+		surface.drawImage(zombie.img,zombie.x,zombie.y); // Draw the zombie.
+	}
+	surface.drawImage(player.img,player.x,player.y); // Draw the player.
+	if (gameIsLost || gameIsWon)
+	{
+		window.removeEventListener("keydown", onKeyDown);
+		window.removeEventListener("keyup", onKeyUp);
+		window.removeEventListener("keypress", onKeyPress);
+		canvas.removeEventListener("click", fire);
+		if (gameIsLost)
+		{
+			surface.drawImage(loseImage,200,100); // Draw the player.
+		}
+		if (gameIsWon)
+		{
+			surface.drawImage(winImage,200,100); // Draw the player.
+		}
+		clearInterval(uInt);
 	}
 }
 
@@ -117,6 +164,20 @@ function moveBullet()
 		
 		currentBullet.x += currentBullet.xSpeed;
 		currentBullet.y += currentBullet.ySpeed;
+	}
+}
+
+function moveZombie()
+{
+	if (player.x > zombie.x)
+	{
+		zombie.img.src = "../img/zombieRight.png";
+		zombie.x += zombieSpeed;
+	}
+	else
+	{
+		zombie.img.src = "../img/zombieLeft.png";
+		zombie.x -= zombieSpeed;
 	}
 }
 
@@ -187,6 +248,38 @@ function movePlayer()
 		{ // Reached the peak of jump, now it's time to fall.
 			applyPlayerGravity = true;
 			window.addEventListener("keypress", onKeyPress);
+		}
+	}
+}
+
+function collisionBulletZombie()
+{
+	for (var i = 0; i < bullets.length; i++)
+	{ // For all bullets in bullets array:
+		if (bullets[i].x + bullets[i].img.width >= zombie.x && bullets[i].x <= zombie.x + zombie.img.width)
+		{ // Then the x coordinates collide.
+			if (bullets[i].y + bullets[i].img.height >= zombie.y && bullets[i].y <= zombie.y + zombie.img.height)
+			{ // Then the y coordinates collide. We have a collision!
+				zombie.lives--;
+				bullets.splice(i,i+1);
+				zombieDamageSound.load();
+				zombieDamageSound.play();
+				if (zombie.lives == 0)
+				{
+					gameIsWon = true;
+				}
+			}
+		}
+	}
+}
+
+function collisionPlayerZombie()
+{
+	if (player.x + player.img.width - 12 >= zombie.x && player.x <= zombie.x + zombie.img.width - 12)
+	{ // Then the x coordinates collide.
+		if (player.y + player.img.height >= zombie.y + 12 && player.y <= zombie.y + zombie.img.height)
+		{ // Then the y coordinates collide. We have a collision!
+			gameIsLost = true;
 		}
 	}
 }
