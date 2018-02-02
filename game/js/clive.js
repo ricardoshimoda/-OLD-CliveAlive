@@ -70,16 +70,16 @@ function update()
 function createMap() // Initialize all the variables here.
 {
 	background = new Image();
-	background.src = "../img/background.jpg";
+	background.src = "img/background.jpg";
 	loseImage = new Image();
-	loseImage.src = "../img/lose.png";
+	loseImage.src = "img/lose.png";
 	winImage = new Image();
-	winImage.src = "../img/win.png";
+	winImage.src = "img/win.png";
 	player.img = new Image();
-	player.img.src = "../img/playerRight.png";
-	jumpSound.setAttribute("src","../aud/jump.wav");
-	shootSound.setAttribute("src","../aud/shoot.wav");
-	zombieDamageSound.setAttribute("src","../aud/damage.wav");
+	player.img.src = "img/playerRight.png";
+	jumpSound.setAttribute("src","aud/jump.wav");
+	shootSound.setAttribute("src","aud/shoot.wav");
+	zombieDamageSound.setAttribute("src","aud/damage.wav");
 	player.x = 300;
 	player.y = 295;
 	playerSpeed = 4;
@@ -91,7 +91,7 @@ function createMap() // Initialize all the variables here.
 	applyPlayerGravity = false;
 	fallSpeed = 5;
 	zombie.img = new Image();
-	zombie.img.src = "../img/zombieRight.png";
+	zombie.img.src = "img/zombieRight.png";
 	zombie.lives = 3;
 	zombie.x = 100;
 	zombie.y = 275 - zombie.img.height;
@@ -100,13 +100,13 @@ function createMap() // Initialize all the variables here.
 	bulletSpeedMultiplier = 20;
 	pads = [];
 	pad1.img = new Image();
-	pad1.img.src = "../img/pad.png";
+	pad1.img.src = "img/pad.png";
 	pad1.x = 100;
 	pad1.y = 250;
 	pad1.onPad = false;
 	pads.push(pad1);
 	pad2.img = new Image();
-	pad2.img.src = "../img/pad.png";
+	pad2.img.src = "img/pad.png";
 	pad2.x = 450;
 	pad2.y = 250;
 	pad2.onPad = false;
@@ -171,12 +171,12 @@ function moveZombie()
 {
 	if (player.x > zombie.x)
 	{
-		zombie.img.src = "../img/zombieRight.png";
+		zombie.img.src = "img/zombieRight.png";
 		zombie.x += zombieSpeed;
 	}
 	else
 	{
-		zombie.img.src = "../img/zombieLeft.png";
+		zombie.img.src = "img/zombieLeft.png";
 		zombie.x -= zombieSpeed;
 	}
 }
@@ -186,18 +186,18 @@ function movePlayer()
 	if (leftPressed && player.x > 0)
 	{
 		if (upPressed)
-			player.img.src = "../img/playerLeftJump.png";
+			player.img.src = "img/playerLeftJump.png";
 		else
-			player.img.src = "../img/playerLeft.png";
+			player.img.src = "img/playerLeft.png";
 		player.x = player.x - playerSpeed;
 		currentDirection = false;
 	}
 	if (rightPressed && player.x < (canvas.width - player.img.width))
 	{
 		if (upPressed)
-			player.img.src = "../img/playerRightJump.png";
+			player.img.src = "img/playerRightJump.png";
 		else
-			player.img.src = "../img/playerRight.png";
+			player.img.src = "img/playerRight.png";
 		player.x = player.x + playerSpeed;
 		currentDirection = true;
 	}
@@ -210,11 +210,11 @@ function movePlayer()
 		}
 		if(currentDirection)
 		{
-			player.img.src = "../img/playerRightJump.png";
+			player.img.src = "img/playerRightJump.png";
 		}
 		else
 		{
-			player.img.src = "../img/playerLeftJump.png";
+			player.img.src = "img/playerLeftJump.png";
 		}
 		if (goingUp)
 		{
@@ -299,11 +299,11 @@ function collisionPlayerPad()
 					resetJump(); // Reset the jump variables so the next jump is not screwed up.
 					if(currentDirection)
 					{
-						player.img.src = "../img/playerRight.png";
+						player.img.src = "img/playerRight.png";
 					}
 					else
 					{
-						player.img.src = "../img/playerLeft.png";
+						player.img.src = "img/playerLeft.png";
 					}
 				}
 			}
@@ -393,11 +393,11 @@ function playerGravity()
 		player.y += fallSpeed;
 		if(currentDirection)
 		{
-			player.img.src = "../img/playerRightJump.png";
+			player.img.src = "img/playerRightJump.png";
 		}
 		else
 		{
-			player.img.src = "../img/playerLeftJump.png";
+			player.img.src = "img/playerLeftJump.png";
 		}
 		for (var i = 0; i < pads.length; i++)
 		{ // For all the pads in the pads array:
@@ -408,11 +408,11 @@ function playerGravity()
 				resetJump(); // Reset the jump variables so the next jump is not screwed up.
 				if(currentDirection)
 				{
-					player.img.src = "../img/playerRight.png";
+					player.img.src = "img/playerRight.png";
 				}
 				else
 				{
-					player.img.src = "../img/playerLeft.png";
+					player.img.src = "img/playerLeft.png";
 				}
 			}
 		}
@@ -423,11 +423,11 @@ function playerGravity()
 			resetJump(); // Reset the jump variables so the next jump is not screwed up.
 			if(currentDirection)
 			{
-				player.img.src = "../img/playerRight.png";
+				player.img.src = "img/playerRight.png";
 			}
 			else
 			{
-				player.img.src = "../img/playerLeft.png";
+				player.img.src = "img/playerLeft.png";
 			}
 		}
 		
@@ -460,7 +460,7 @@ function fire(event)
 	var finalSpeedY = commonSpeedVariable*yCoef*bulletSpeedMultiplier;
 	// END OF BULLET TRAJECTORY CALCULATION *****************************************************************************
 	var bulletImage = new Image();
-	bulletImage.src = "../img/bullet.png";
+	bulletImage.src = "img/bullet.png";
 	bullets.push({img:bulletImage,x:player.x,y:player.y,xSpeed:finalSpeedX,ySpeed:finalSpeedY});
 }
 
